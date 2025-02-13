@@ -402,3 +402,5 @@ FodyWeavers.xsd
 .pytest_cache
 .venv
 venv/
+allure-report/
+allure-results/

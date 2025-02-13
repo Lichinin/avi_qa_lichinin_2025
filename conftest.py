@@ -5,15 +5,15 @@ from logging.handlers import RotatingFileHandler
 from pathlib import Path
 
 import pytest
-from locators.locators import Selectors
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options as ChromeOptions
 from selenium.webdriver.edge.options import Options as EdgeOptions
 from selenium.webdriver.firefox.options import Options as FirefoxOptions
 from selenium.webdriver.remote.webdriver import WebDriver
 
+from locators.locators import Selectors
 from pages.details_page import DetailsPage
-from pages.product_page import ProductPage
+from pages.products_page import ProductPage
 
 
 def pytest_addoption(parser):

@@ -45,7 +45,7 @@ class BasePage:
             self.logger.exception('!!! Test failed !!!')
             raise
 
-    @allure.step('Проверка assert_equals')
+    @allure.step('Проверка assert_not_equals')
     def assert_not_equals(self, expected, actual):
         self.logger.info('* Check assertion assert_equals')
         try:
@@ -62,34 +62,41 @@ class BasePage:
             self.logger.exception('!!! Test failed !!!')
             raise
 
+    @allure.step('Заполнение имени продукта')
     def paste_product_name(self, product_name):
         field = self.get_element(Selectors.PRODUCT_TITLE)
         field.clear()
         field.send_keys(product_name)
 
+    @allure.step('Заполнение цены продукта')
     def paste_product_price(self, product_price):
         field = self.get_element(Selectors.PRODUCT_PRICE)
         field.clear()
         field.send_keys(product_price)
 
+    @allure.step('Заполнение описания продукта')
     def paste_product_description(self, product_description):
         field = self.get_element(Selectors.PRODUCT_DESCRIPTION)
         field.clear()
         field.send_keys(product_description)
 
+    @allure.step('Заполнение адреса изобраения продукта')
     def paste_product_image(self, product_image):
         field = self.get_element(Selectors.PRODUCT_IMAGE)
         field.clear()
         field.send_keys(product_image)
 
+    @allure.step('Нажатие кнопки "Подтвердить"')
     def click_button_submit(self):
         self.get_element(Selectors.SUBMIT_BUTTON).click()
 
+    @allure.step('Поиск продукта')
     def find_product(self, product_name):
         field = self.get_element(Selectors.SEARCH_FIELD)
         field.clear()
         field.send_keys(product_name)
         self.get_element(Selectors.SEARCH_BUTTON).click()
 
+    @allure.step('Клик по карточке продукта')
     def click_product_card(self):
         self.get_element(Selectors.PRODUCT_CARD).click()
