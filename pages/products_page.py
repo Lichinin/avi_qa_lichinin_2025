@@ -1,5 +1,6 @@
 import allure
 
+from constants.constants import Constans
 from locators.locators import Selectors
 from pages.base_page import BasePage
 
@@ -19,7 +20,7 @@ class ProductPage(BasePage):
 
     @allure.step('Проверет, что созданный продукт есть в базе')
     def assert_create_product(self):
-        self.find_product(Selectors.CREATE_PRODUCT_NAME)
+        self.find_product(Constans.CREATE_PRODUCT_NAME)
         self.assert_not_equals(
             'Найдено: 0',
             self.get_element(Selectors.SEARCH_RESULTS).text.strip()

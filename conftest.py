@@ -11,7 +11,7 @@ from selenium.webdriver.edge.options import Options as EdgeOptions
 from selenium.webdriver.firefox.options import Options as FirefoxOptions
 from selenium.webdriver.remote.webdriver import WebDriver
 
-from locators.locators import Selectors
+from constants.constants import Constans
 from pages.details_page import DetailsPage
 from pages.products_page import ProductPage
 
@@ -60,10 +60,13 @@ def browser(request, logger) -> WebDriver:
     if executor:
         if browser_name == 'chrome':
             options = ChromeOptions()
+            options.page_load_strategy = 'eager'
         elif browser_name == 'firefox':
             options = FirefoxOptions()
+            options.page_load_strategy = 'eager'
         elif browser_name == 'edge':
             options = EdgeOptions()
+            options.page_load_strategy = 'eager'
         else:
             raise ValueError(
                 'Browser name must be "chrome", "firefox" or "edge"'
@@ -124,7 +127,7 @@ def open_start_page(browser) -> ProductPage:
 @pytest.fixture()
 def open_product_details_page(browser) -> DetailsPage:
     page = DetailsPage(browser)
-    page.find_product(Selectors.CREATE_PRODUCT_NAME)
+    page.find_product(Constans.CREATE_PRODUCT_NAME)
     page.click_product_card()
     return page
 
@@ -133,8 +136,8 @@ def open_product_details_page(browser) -> DetailsPage:
 def create_test_product(open_start_page):
     page = open_start_page
     page.click_button_create()
-    page.paste_product_name(Selectors.CREATE_PRODUCT_NAME)
-    page.paste_product_price(Selectors.CREATE_PRODUCT_PRICE)
-    page.paste_product_description(Selectors.CREATE_PRODUCT_DESCRIPTION)
-    page.paste_product_image(Selectors.CREATE_PRODUCT_IMAGE)
+    page.paste_product_name(Constans.CREATE_PRODUCT_NAME)
+    page.paste_product_price(Constans.CREATE_PRODUCT_PRICE)
+    page.paste_product_description(Constans.CREATE_PRODUCT_DESCRIPTION)
+    page.paste_product_image(Constans.CREATE_PRODUCT_IMAGE)
     page.click_button_submit()
