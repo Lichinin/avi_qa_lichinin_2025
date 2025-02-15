@@ -1,12 +1,12 @@
 
 class Constans:
 
-    CREATE_PRODUCT_NAME = 'f7312'
+    CREATE_PRODUCT_NAME = 'f9412'
     CREATE_PRODUCT_PRICE = '1000'
     CREATE_PRODUCT_DESCRIPTION = 'description'
     CREATE_PRODUCT_IMAGE = 'image'
 
-    EDIT_PRODUCT_NAME = 'f7312.v2'
+    EDIT_PRODUCT_NAME = 'f9412.v2'
     EDIT_PRODUCT_PRICE = '2000'
     EDIT_PRODUCT_DESCRIPTION = 'new_description'
     EDIT_PRODUCT_IMAGE = 'new_image'

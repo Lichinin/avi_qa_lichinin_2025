@@ -98,7 +98,7 @@ def browser(request, logger) -> WebDriver:
             options.page_load_strategy = 'eager'
             # options.add_argument("--headless")
             driver = webdriver.Firefox(options=options)
-            # driver.fullscreen_window()
+            driver.fullscreen_window()
         elif browser_name == 'edge':
             options = webdriver.EdgeOptions()
             options.use_chromium = True
@@ -132,7 +132,7 @@ def open_product_details_page(browser) -> DetailsPage:
     return page
 
 
-@pytest.fixture()
+@pytest.fixture(scope="function")
 def create_test_product(open_start_page):
     page = open_start_page
     page.click_button_create()
