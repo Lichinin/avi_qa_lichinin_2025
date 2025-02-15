@@ -14,7 +14,7 @@ def test_button_create(open_start_page):
 
 @allure.epic('Avito-intern test project')
 @allure.suite('UI tests')
-@allure.title('Тест создания нового продукта')
+@allure.title('(TC_UI_01) Тест создания нового продукта')
 def test_create_product(open_start_page):
     page = open_start_page
     page.click_button_create()

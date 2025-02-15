@@ -5,7 +5,7 @@ from constants.constants import Constans
 
 @allure.epic('Avito-intern test project')
 @allure.suite('UI tests')
-@allure.title('Тест редактирования продукта')
+@allure.title('(TC_UI_02) Тест редактирования продукта')
 def test_edited_product(create_test_product, open_product_details_page):
     page = open_product_details_page
     page.click_button_edit()
