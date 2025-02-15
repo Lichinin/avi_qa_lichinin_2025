@@ -3,7 +3,9 @@
 Автор: Виталий Личинин
 
 В проекте реализована автоматизация API и UI тесткейсов.
+
 Имеется возможность запуска тестов локально и на удаленном сервере(Selenoid).
+
 Имеется возможность запуска тестов в несколько потоков.
 
 **Оглавление**
@@ -29,11 +31,17 @@
 
 ### Используемые библиотеки.
 allure-pytest==2.13.5
+
 Cerberus==1.3.7
+
 pytest==8.3.4
+
 pytest-xdist==3.6.1
+
 requests==2.32.3
+
 selenium==4.28.1
+
 ***
 ### Структура проекта.
 ```
@@ -264,8 +272,11 @@ tests/test_ui/test_find_product.py::test_find_product
 
 ### Примеры отчетности Allure.
 * Summary по тестам:
+![общий](https://github.com/user-attachments/assets/6c6e2de1-2c01-4cd2-9ef0-275304b3a1aa)
 
 * Тесткейсы:
+![suites](https://github.com/user-attachments/assets/6644d5e4-d4a1-420d-9d74-d7415bd0d7f4)
 
 * Пример отчета по тесткейсу:
+![Пример теста](https://github.com/user-attachments/assets/23cc3936-61d9-43c0-b33b-536ebb7f2d81)
 
