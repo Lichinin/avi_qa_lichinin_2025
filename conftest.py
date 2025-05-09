@@ -17,8 +17,8 @@ from pages.products_page import ProductPage
 
 
 def pytest_addoption(parser):
-    parser.addoption('--browser', action='store', default='firefox')
-    parser.addoption('--url', action='store', default='http://tech-avito-intern.jumpingcrab.com')
+    parser.addoption('--browser', action='store', default='chrome')
+    parser.addoption('--url', action='store', default='http://uitestingplayground.com/')
     parser.addoption('--log_level', action='store', default="INFO")
     parser.addoption('--executor', action='store')
     parser.addoption('--browser_version', action='store')

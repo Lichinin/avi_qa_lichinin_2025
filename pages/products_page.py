@@ -3,9 +3,15 @@ import allure
 from constants.constants import Constans
 from locators.locators import Selectors
 from pages.base_page import BasePage
-
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 
 class ProductPage(BasePage):
+
+    def wait_for_title_contains(self, text, timeout=15):
+        WebDriverWait(self.browser, timeout).until(
+            EC.title_contains(text)
+        )
 
     @allure.step('Клик по кнопке "Создать"')
     def click_button_create(self):

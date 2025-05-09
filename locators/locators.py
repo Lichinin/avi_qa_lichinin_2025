@@ -17,7 +17,7 @@ class Selectors:
     SEARCH_FIELD = (
         By.CSS_SELECTOR, 'input[placeholder="Поиск по объявлениям"]'
     )
-    SEARCH_BUTTON = (By.XPATH, '//button[text()="Найти"]')
+    SEARCH_BUTTON = (By.CSS_SELECTOR, 'button[data-marker="search-form/submit-button"]')
     SEARCH_RESULTS = (By.XPATH, '//p[contains(text(), "Найдено: ")]')
     PRODUCT_CARD = (
         By.XPATH,
@@ -30,3 +30,4 @@ class Selectors:
         By.CSS_SELECTOR, '.chakra-stack > p.chakra-text'
     )
     DETAIL_PRODUCT_IMAGE = (By.CSS_SELECTOR, 'img[alt="product image"]')
+    DYNAMIC = (By.LINK_TEXT, 'Dynamic ID')
