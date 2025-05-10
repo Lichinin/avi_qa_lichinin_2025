@@ -1,55 +1,50 @@
 pipeline {
     agent any
     
-    environment {
-        DOCKER_HOST = "tcp://localhost:2375"
-        SELENOID_IP = "localhost"
-    }
-
     stages {
-        stage('Prepare Environment') {
+        stage('Build Test Image') {
             steps {
-                bat '''
-                @echo off
-                docker network create selenoid_net || echo Network already exists
-                docker pull aerokube/selenoid:latest
-                docker pull selenoid/chrome:125.0
-                docker pull selenoid/video-recorder:latest
-                '''
+                script {
+                    docker.build("python-web-tests", ".")
+                }
             }
         }
-
-        stage('Start Selenoid') {
+        
+        stage('Pull Selenoid & Browser') {
             steps {
-                bat '''
-                @echo off
-                docker-compose -f docker-compose.yml up -d selenoid
-                
-                :: Проверка доступности с таймаутом
-                for /l %%x in (1, 1, 10) do (
-                  curl -s http://localhost:4444/status >nul && (
-                    echo Selenoid ready
-                    goto :ready
-                  ) || (
-                    timeout /t 3 >nul
-                  )
-                )
-                :ready
-                curl -v http://localhost:4444/status
-                '''
+                script {
+                    docker.image('aerokube/selenoid:latest').pull()
+                    docker.image('selenoid/chrome:125.0').pull()
+                }
             }
         }
-
+        
         stage('Run Tests') {
             steps {
-                bat '''
-                @echo off
-                docker-compose -f docker-compose.yml build tests
-                docker-compose -f docker-compose.yml run --rm tests
-                '''
+                script {
+                    // Запускаем Selenoid
+                    def selenoid = docker.image('aerokube/selenoid:latest').run(
+                        '-p 4444:4444 -v /var/run/docker.sock:/var/run/docker.sock --name selenoid'
+                    )
+                    
+                    // Даем время на запуск
+                    sleep 30
+                    
+                    try {
+                        // Запускаем тесты, связывая контейнеры
+                        docker.image('python-web-tests').inside(
+                            "--link selenoid:selenoid -e SELENOID_URL='http://selenoid:4444/wd/hub'"
+                        ) {
+                            sh 'pytest'
+                        }
+                    } finally {
+                        // Останавливаем Selenoid после тестов
+                        selenoid.stop()
+                    }
+                }
             }
         }
-
+        
         stage('Allure Report') {
             steps {
                 allure([
@@ -62,15 +57,14 @@ pipeline {
             }
         }
     }
-
+    
     post {
         always {
-            bat '''
-            @echo off
-            docker-compose -f docker-compose.yml down --timeout 30
-            docker network rm selenoid_net || echo Network removal failed
-            '''
-            archiveArtifacts artifacts: '**\\logs\\*.log', allowEmptyArchive: true
+            script {
+                // Очистка контейнеров
+                sh 'docker rm -f selenoid || true'
+            }
+            archiveArtifacts artifacts: 'allure-results/**/*', allowEmptyArchive: true
         }
     }
 }
