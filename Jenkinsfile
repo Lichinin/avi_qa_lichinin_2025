@@ -16,7 +16,6 @@ pipeline {
         stage('Setup Docker Compose Project Name') {
             steps {
                 script {
-                    // Установка переменной для уникальности проекта
                     env.DOCKER_COMPOSE_PROJECT_NAME = "ci_build_${currentBuild.number}"
                     echo "DOCKER_COMPOSE_PROJECT_NAME = ${env.DOCKER_COMPOSE_PROJECT_NAME}"
                 }
@@ -25,25 +24,25 @@ pipeline {
 
         stage('Start Selenoid') {
             steps {
-                sh '''
-                    DOCKER_COMPOSE_PROJECT_NAME=${DOCKER_COMPOSE_PROJECT_NAME} docker-compose up -d selenoid
-                    sleep 10  # Ждём, пока Selenoid полностью стартует
+                bat '''
+                    docker-compose -p %DOCKER_COMPOSE_PROJECT_NAME% up -d selenoid
+                    timeout /t 10
                 '''
             }
         }
 
         stage('Run Tests') {
             steps {
-                sh '''
-                    DOCKER_COMPOSE_PROJECT_NAME=${DOCKER_COMPOSE_PROJECT_NAME} docker-compose run --rm tests
+                bat '''
+                    docker-compose -p %DOCKER_COMPOSE_PROJECT_NAME% run --rm tests
                 '''
             }
         }
 
         stage('Stop Containers') {
             steps {
-                sh '''
-                    DOCKER_COMPOSE_PROJECT_NAME=${DOCKER_COMPOSE_PROJECT_NAME} docker-compose down || true
+                bat '''
+                    docker-compose -p %DOCKER_COMPOSE_PROJECT_NAME% down
                 '''
             }
         }
