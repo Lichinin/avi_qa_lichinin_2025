@@ -3,16 +3,15 @@ version: '3.8'
 services:
   selenoid:
     image: aerokube/selenoid:latest
+    hostname: selenoid
     ports:
       - "4444:4444"
+    command: ["-container-network", "avi_qa_lichinin_2025_selenoid_net"]
+    environment:
+      - DOCKER_DEFAULT_NETWORK=avi_qa_lichinin_2025_selenoid_net
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock"
       - "./browsers.json:/etc/selenoid/browsers.json"
-    command: [
-      "-container-network", "selenoid_net",
-      "-timeout", "2m",
-      "-service-startup-timeout", "2m"
-    ]
     networks:
       - selenoid_net
 
@@ -22,12 +21,11 @@ services:
       - selenoid
     environment:
       SELENOID_URL: "http://selenoid:4444/wd/hub"
-    networks:
-      - selenoid_net
     volumes:
       - "./allure-results:/app/allure-results"
+    networks:
+      - selenoid_net
 
 networks:
   selenoid_net:
     driver: bridge
-    external: true  # Сеть должна существовать до запуска
