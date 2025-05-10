@@ -24,19 +24,17 @@ pipeline {
             steps {
                 script {
                     try {
-                        bat """
-                            docker-compose -p %DOCKER_COMPOSE_PROJECT_NAME% up -d selenoid
-                            ping -n 10 127.0.0.1 > nul
+                        sh """
+                            docker-compose -p \${DOCKER_COMPOSE_PROJECT_NAME} up -d selenoid
+                            sleep 10
                         """
 
-                        bat """
-                            docker-compose -p %DOCKER_COMPOSE_PROJECT_NAME% run --rm tests
+                        sh """
+                            docker-compose -p \${DOCKER_COMPOSE_PROJECT_NAME} run --rm tests
                         """
                     } finally {
-                        echo "Останавливаем контейнеры..."
-
-                        bat """
-                            docker-compose -p %DOCKER_COMPOSE_PROJECT_NAME% down || exit 0
+                        sh """
+                            docker-compose -p \${DOCKER_COMPOSE_PROJECT_NAME} down || true
                         """
                     }
                 }
