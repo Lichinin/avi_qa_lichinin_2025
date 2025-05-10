@@ -20,39 +20,33 @@ pipeline {
             }
         }
 
-        stage('Start Selenoid') {
+        stage('Start Selenoid and Run Tests') {
             steps {
-                bat """
-                    docker-compose -p %DOCKER_COMPOSE_PROJECT_NAME% up -d selenoid
-                """
-            }
-        }
+                script {
+                    try {
+                        bat """
+                            docker-compose -p %DOCKER_COMPOSE_PROJECT_NAME% up -d selenoid
+                            ping -n 10 127.0.0.1 > nul
+                        """
 
-        stage('Run Tests') {
-            steps {
-                bat """
-                    docker-compose -p %DOCKER_COMPOSE_PROJECT_NAME% run --rm tests
-                """
-            }
-        }
+                        bat """
+                            docker-compose -p %DOCKER_COMPOSE_PROJECT_NAME% run --rm tests
+                        """
+                    } finally {
+                        echo "Останавливаем контейнеры..."
 
-        stage('Stop Containers') {
-            steps {
-                bat """
-                    docker-compose -p %DOCKER_COMPOSE_PROJECT_NAME% down
-                """
-            }
-        }
-
-        stage('Publish Allure Report') {
-            steps {
-                allure includeProperties: false, jdk: '', results: [[path: 'allure-results']]
+                        bat """
+                            docker-compose -p %DOCKER_COMPOSE_PROJECT_NAME% down || exit 0
+                        """
+                    }
+                }
             }
         }
     }
 
     post {
         always {
+            allure includeProperties: false, jdk: '', results: [[path: 'allure-results']]
             echo 'Pipeline finished.'
         }
         failure {
