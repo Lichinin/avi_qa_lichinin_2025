@@ -34,7 +34,6 @@ pipeline {
                         """
                     } finally {
                         echo "Останавливаем контейнеры..."
-
                         bat """
                             docker-compose -p %DOCKER_COMPOSE_PROJECT_NAME% down || exit 0
                         """
@@ -56,10 +55,10 @@ pipeline {
                 def failed = 0
                 def skipped = 0
 
-                // Ждём, чтобы allure-results точно были готовы
-                sh 'sleep 5 || true' // Только для Linux
+                // ✅ Заменим sleep на Windows-совместимый
+                bat 'ping -n 5 127.0.0.1 > nul'
 
-                // Ищем JSON-файлы с результатами тестов
+                // ✅ Убедись, что Jenkins может читать allure-results
                 def files = findFiles(glob: 'allure-results/test-result-*.json')
 
                 if (files == null || files.size() == 0) {
@@ -94,15 +93,15 @@ pipeline {
                 def htmlBody = """\
                     <html>
                     <body>
-                    <h3>Сборка: ${buildName} упала</h3>
-                    <p><strong>Ссылка:</strong> <a href='${buildUrl}'>${buildUrl}</a></p>
-                    <h4>Результаты тестов:</h4>
-                    <ul>
+                      <h3>Сборка: ${buildName} упала</h3>
+                      <p><strong>Ссылка:</strong> <a href='${buildUrl}'>${buildUrl}</a></p>
+                      <h4>Результаты тестов:</h4>
+                      <ul>
                         <li>✅ Пройдено: ${passed ?: 0}</li>
                         <li>❌ Упало: ${failed ?: 0}</li>
                         <li>⚠️ Пропущено: ${skipped ?: 0}</li>
-                    </ul>
-                    <p>Сгенерировано автоматически через Jenkins + Allure</p>
+                      </ul>
+                      <p>Сгенерировано автоматически через Jenkins + Allure</p>
                     </body>
                     </html>
                 """.stripIndent()
