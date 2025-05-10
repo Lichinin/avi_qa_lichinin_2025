@@ -26,4 +26,5 @@ services:
 
 networks:
   selenoid_net:
+    name: selenoid_net
     driver: bridge
