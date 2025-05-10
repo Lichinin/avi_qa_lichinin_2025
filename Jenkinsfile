@@ -50,7 +50,7 @@ pipeline {
             echo 'Pipeline finished.'
         }
         failure {
-            mail to: 'your@email.com',
+            mail to: 'lichinin.v@yandex.ru',
                  subject: "Failed Pipeline: ${currentBuild.fullDisplayName}",
                  body: "See ${env.BUILD_URL}"
         }
