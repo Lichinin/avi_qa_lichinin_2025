@@ -3,6 +3,7 @@ pipeline {
 
     environment {
         DOCKER_COMPOSE_PROJECT_NAME = "ci_build_${currentBuild.number}"
+        SELENOID_NETWORK = "selenoid_net"
     }
 
     stages {
@@ -12,7 +13,7 @@ pipeline {
             }
         }
 
-        stage('Setup Docker Compose Project Name') {
+        stage('Setup Project Name') {
             steps {
                 script {
                     echo "DOCKER_COMPOSE_PROJECT_NAME = ${env.DOCKER_COMPOSE_PROJECT_NAME}"
@@ -20,15 +21,31 @@ pipeline {
             }
         }
 
-        stage('Start Selenoid and Run Tests') {
+        stage('Cleanup old networks') {
+            steps {
+                sh 'docker network ls | grep selenoid_net && docker network rm selenoid_net || true'
+            }
+        }
+
+        stage('Create shared network') {
+            steps {
+                sh 'docker network create selenoid_net || true'
+            }
+        }
+
+        stage('Start Selenoid') {
+            steps {
+                sh """
+                    docker-compose -p \${DOCKER_COMPOSE_PROJECT_NAME} up -d selenoid
+                    sleep 10
+                """
+            }
+        }
+
+        stage('Run Tests') {
             steps {
                 script {
                     try {
-                        sh """
-                            docker-compose -p \${DOCKER_COMPOSE_PROJECT_NAME} up -d selenoid
-                            sleep 10
-                        """
-
                         sh """
                             docker-compose -p \${DOCKER_COMPOSE_PROJECT_NAME} run --rm tests
                         """
