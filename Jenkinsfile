@@ -2,7 +2,6 @@ pipeline {
     agent any
 
     environment {
-        SELENOID_URL = "http://selenoid:4444/wd/hub"
         DOCKER_COMPOSE_PROJECT_NAME = "ci_build_${currentBuild.number}"
     }
 
@@ -16,7 +15,6 @@ pipeline {
         stage('Setup Docker Compose Project Name') {
             steps {
                 script {
-                    env.DOCKER_COMPOSE_PROJECT_NAME = "ci_build_${currentBuild.number}"
                     echo "DOCKER_COMPOSE_PROJECT_NAME = ${env.DOCKER_COMPOSE_PROJECT_NAME}"
                 }
             }
@@ -26,7 +24,7 @@ pipeline {
             steps {
                 bat """
                     docker-compose -p %DOCKER_COMPOSE_PROJECT_NAME% up -d selenoid
-                    timeout /t 10
+                    ping -n 10 127.0.0.1 > nul
                 """
             }
         }
