@@ -9,11 +9,9 @@ pipeline {
     stages {
         stage('Prepare Environment') {
             steps {
-                sh '''
-                # Создаем сеть если не существует
-                docker network create selenoid_net || true
-                
-                # Скачиваем образы (можно добавить --quiet для уменьшения логов)
+                bat '''
+                @echo off
+                docker network create selenoid_net || echo Network already exists
                 docker pull aerokube/selenoid:latest
                 docker pull selenoid/chrome:125.0
                 docker pull selenoid/video-recorder:latest
@@ -23,20 +21,20 @@ pipeline {
 
         stage('Start Selenoid') {
             steps {
-                sh '''
-                # Запускаем Selenoid с локальным конфигом
+                bat '''
+                @echo off
                 docker-compose -f docker-compose.yml up -d selenoid
                 
-                # Проверяем доступность (добавляем таймаут)
-                for i in {1..10}; do
-                    if curl -s http://localhost:4444/status >/dev/null; then
-                        echo "Selenoid ready"
-                        break
-                    fi
-                    sleep 3
-                done
-                
-                # Полная проверка статуса
+                :: Проверка доступности с таймаутом
+                for /l %%x in (1, 1, 10) do (
+                  curl -s http://localhost:4444/status >nul && (
+                    echo Selenoid ready
+                    goto :ready
+                  ) || (
+                    timeout /t 3 >nul
+                  )
+                )
+                :ready
                 curl -v http://localhost:4444/status
                 '''
             }
@@ -44,8 +42,8 @@ pipeline {
 
         stage('Run Tests') {
             steps {
-                sh '''
-                # Собираем и запускаем тесты с привязкой к локальной сети
+                bat '''
+                @echo off
                 docker-compose -f docker-compose.yml build tests
                 docker-compose -f docker-compose.yml run --rm tests
                 '''
@@ -67,12 +65,12 @@ pipeline {
 
     post {
         always {
-            sh '''
-            # Останавливаем контейнеры с таймаутом
+            bat '''
+            @echo off
             docker-compose -f docker-compose.yml down --timeout 30
-            docker network rm selenoid_net || true
+            docker network rm selenoid_net || echo Network removal failed
             '''
-            archiveArtifacts artifacts: '**/logs/*.log', allowEmptyArchive: true
+            archiveArtifacts artifacts: '**\\logs\\*.log', allowEmptyArchive: true
         }
     }
 }
