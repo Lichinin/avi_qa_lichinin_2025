@@ -7,8 +7,6 @@ services:
     ports:
       - "4444:4444"
     command: ["-container-network", "avi_qa_lichinin_2025_selenoid_net"]
-    environment:
-      - DOCKER_DEFAULT_NETWORK=avi_qa_lichinin_2025_selenoid_net
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock"
       - "./browsers.json:/etc/selenoid/browsers.json"

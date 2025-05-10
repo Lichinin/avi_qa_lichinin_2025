@@ -5,8 +5,7 @@
       "125.0": {
         "image": "selenoid/chrome:125.0",
         "port": "4444",
-        "path": "/",
-        "networks": ["avi_qa_lichinin_2025_selenoid_net"]
+        "path": "/"
       }
     }
   }
