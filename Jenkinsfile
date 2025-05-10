@@ -1,66 +1,68 @@
 pipeline {
     agent any
-    
+
+    environment {
+        SELENOID_URL = "http://selenoid:4444/wd/hub"
+        DOCKER_COMPOSE_PROJECT_NAME = "ci_build_\${BUILD_NUMBER}"
+    }
+
     stages {
-        stage('Build Test Image') {
+        stage('Clone Repository') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Setup Docker Compose Project Name') {
             steps {
                 script {
-                    docker.build("python-web-tests", ".")
+                    // Установка переменной для уникальности проекта
+                    env.DOCKER_COMPOSE_PROJECT_NAME = "ci_build_${currentBuild.number}"
+                    echo "DOCKER_COMPOSE_PROJECT_NAME = ${env.DOCKER_COMPOSE_PROJECT_NAME}"
                 }
             }
         }
-        
-        stage('Pull Selenoid & Browser') {
+
+        stage('Start Selenoid') {
             steps {
-                script {
-                    docker.image('aerokube/selenoid:latest').pull()
-                    docker.image('selenoid/chrome:125.0').pull()
-                }
+                sh '''
+                    DOCKER_COMPOSE_PROJECT_NAME=${DOCKER_COMPOSE_PROJECT_NAME} docker-compose up -d selenoid
+                    sleep 10  # Ждём, пока Selenoid полностью стартует
+                '''
             }
         }
-        
+
         stage('Run Tests') {
             steps {
-                script {
-                    // Запускаем Selenoid
-                    def selenoid = docker.image('aerokube/selenoid:latest').run(
-                        '-p 4444:4444 -v //var/run/docker.sock:/var/run/docker.sock --name selenoid'
-                    )
-                    
-                    bat 'ping 127.0.0.1 -n 30 > nul'
-                    
-                    try {
-                        docker.image('python-web-tests').inside(
-                            "--link selenoid:selenoid -e SELENOID_URL=http://selenoid:4444/wd/hub"
-                        ) {
-                            sh 'pytest'
-                        }
-                    } finally {
-                        selenoid.stop()
-                    }
-                }
+                sh '''
+                    DOCKER_COMPOSE_PROJECT_NAME=${DOCKER_COMPOSE_PROJECT_NAME} docker-compose run --rm tests
+                '''
             }
         }
-        
-        stage('Allure Report') {
+
+        stage('Stop Containers') {
             steps {
-                allure([
-                    includeProperties: false,
-                    jdk: '',
-                    properties: [],
-                    reportBuildPolicy: 'ALWAYS',
-                    results: [[path: 'allure-results']]
-                ])
+                sh '''
+                    DOCKER_COMPOSE_PROJECT_NAME=${DOCKER_COMPOSE_PROJECT_NAME} docker-compose down || true
+                '''
+            }
+        }
+
+        stage('Publish Allure Report') {
+            steps {
+                allure includeProperties: false, jdk: '', results: [[path: 'allure-results']]
             }
         }
     }
-    
+
     post {
         always {
-            script {
-                bat 'docker rm -f selenoid || echo Container removal skipped'
-                archiveArtifacts artifacts: 'allure-results/**/*', allowEmptyArchive: true
-            }
+            echo 'Pipeline finished.'
+        }
+        failure {
+            mail to: 'your@email.com',
+                 subject: "Failed Pipeline: ${currentBuild.fullDisplayName}",
+                 body: "See ${env.BUILD_URL}"
         }
     }
 }
