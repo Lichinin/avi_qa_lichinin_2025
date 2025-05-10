@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         SELENOID_URL = "http://selenoid:4444/wd/hub"
-        DOCKER_COMPOSE_PROJECT_NAME = "ci_build_\${BUILD_NUMBER}"
+        DOCKER_COMPOSE_PROJECT_NAME = "ci_build_${currentBuild.number}"
     }
 
     stages {
@@ -24,26 +24,26 @@ pipeline {
 
         stage('Start Selenoid') {
             steps {
-                bat '''
+                bat """
                     docker-compose -p %DOCKER_COMPOSE_PROJECT_NAME% up -d selenoid
                     timeout /t 10
-                '''
+                """
             }
         }
 
         stage('Run Tests') {
             steps {
-                bat '''
+                bat """
                     docker-compose -p %DOCKER_COMPOSE_PROJECT_NAME% run --rm tests
-                '''
+                """
             }
         }
 
         stage('Stop Containers') {
             steps {
-                bat '''
+                bat """
                     docker-compose -p %DOCKER_COMPOSE_PROJECT_NAME% down
-                '''
+                """
             }
         }
 
