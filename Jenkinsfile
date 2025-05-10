@@ -56,20 +56,34 @@ pipeline {
                 def failed = 0
                 def skipped = 0
 
-                // Подсчёт по allure-results
+                // Ждём, чтобы allure-results точно были готовы
+                sh 'sleep 5 || true' // Только для Linux
+
+                // Ищем JSON-файлы с результатами тестов
                 def files = findFiles(glob: 'allure-results/test-result-*.json')
-                files.each { file ->
-                    def json = readJSON file: file
-                    switch(json.status) {
-                        case "passed":
-                            passed++
-                            break
-                        case "failed":
-                            failed++
-                            break
-                        case "skipped":
-                            skipped++
-                            break
+
+                if (files == null || files.size() == 0) {
+                    echo "❌ Файлы результатов не найдены в allure-results/"
+                } else {
+                    files.each { file ->
+                        try {
+                            def json = readJSON file: file.path
+                            switch(json.status) {
+                                case "passed":
+                                    passed++
+                                    break
+                                case "failed":
+                                    failed++
+                                    break
+                                case "skipped":
+                                    skipped++
+                                    break
+                                default:
+                                    echo "Неизвестный статус: ${json.status}"
+                            }
+                        } catch (Exception e) {
+                            echo "Ошибка при чтении файла ${file.name}: ${e}"
+                        }
                     }
                 }
 
@@ -80,15 +94,15 @@ pipeline {
                 def htmlBody = """\
                     <html>
                     <body>
-                      <h3>Сборка: ${buildName} упала</h3>
-                      <p><strong>Ссылка:</strong> <a href='${buildUrl}'>${buildUrl}</a></p>
-                      <h4>Результаты тестов:</h4>
-                      <ul>
-                        <li>✅ Пройдено: ${passed}</li>
-                        <li>❌ Упало: ${failed}</li>
-                        <li>⚠️ Пропущено: ${skipped}</li>
-                      </ul>
-                      <p>Сгенерировано автоматически через Jenkins + Allure</p>
+                    <h3>Сборка: ${buildName} упала</h3>
+                    <p><strong>Ссылка:</strong> <a href='${buildUrl}'>${buildUrl}</a></p>
+                    <h4>Результаты тестов:</h4>
+                    <ul>
+                        <li>✅ Пройдено: ${passed ?: 0}</li>
+                        <li>❌ Упало: ${failed ?: 0}</li>
+                        <li>⚠️ Пропущено: ${skipped ?: 0}</li>
+                    </ul>
+                    <p>Сгенерировано автоматически через Jenkins + Allure</p>
                     </body>
                     </html>
                 """.stripIndent()
