@@ -22,23 +22,23 @@ pipeline {
         stage('Run Tests') {
             steps {
                 script {
-                    // Запускаем Selenoid
+                    // 1. Запускаем Selenoid (Windows-формат для volume)
                     def selenoid = docker.image('aerokube/selenoid:latest').run(
-                        '-p 4444:4444 -v /var/run/docker.sock:/var/run/docker.sock --name selenoid'
+                        '-p 4444:4444 -v //var/run/docker.sock:/var/run/docker.sock --name selenoid'
                     )
                     
-                    // Даем время на запуск
-                    sleep 30
+                    // 2. Ожидание запуска (Windows-команда)
+                    bat 'timeout /t 30 /nobreak'
                     
                     try {
-                        // Запускаем тесты, связывая контейнеры
+                        // 3. Запуск тестов (sh остается, так как внутри Linux-контейнера)
                         docker.image('python-web-tests').inside(
-                            "--link selenoid:selenoid -e SELENOID_URL='http://selenoid:4444/wd/hub'"
+                            "--link selenoid:selenoid -e SELENOID_URL=http://selenoid:4444/wd/hub"
                         ) {
                             sh 'pytest'
                         }
                     } finally {
-                        // Останавливаем Selenoid после тестов
+                        // 4. Остановка Selenoid
                         selenoid.stop()
                     }
                 }
@@ -61,10 +61,10 @@ pipeline {
     post {
         always {
             script {
-                // Очистка контейнеров
-                sh 'docker rm -f selenoid || true'
+                // Очистка (Windows-команда)
+                bat 'docker rm -f selenoid || echo Container removal skipped'
+                archiveArtifacts artifacts: 'allure-results/**/*', allowEmptyArchive: true
             }
-            archiveArtifacts artifacts: 'allure-results/**/*', allowEmptyArchive: true
         }
     }
 }
