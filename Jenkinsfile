@@ -65,7 +65,7 @@ pipeline {
 
                     // Используем 7z для создания зашифрованного архива
                     bat """
-                        C:\Program Files\7-Zip\7z.exe a -tzip -p${archivePassword} -mem=AES256 ${encryptedZipPath} allure-report\\*
+                        C:\\Program Files\\7-Zip\\7z.exe a -tzip -p${archivePassword} -mem=AES256 ${encryptedZipPath} allure-report\\*
                     """
 
                     echo "🔒 Зашифрованный архив создан: ${encryptedZipPath}"
