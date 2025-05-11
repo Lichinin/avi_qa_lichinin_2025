@@ -52,6 +52,21 @@ pipeline {
                 }
             }
         }
+        stage('Generate Allure Report Archive') {
+            steps {
+                script {
+                    // Удаляем старый архив, если он есть
+                    def zipExists = fileExists('allure-report.zip')
+                    if (zipExists) {
+                        bat 'del /q allure-report.zip'
+                    }
+
+                    bat """
+                        powershell Compress-Archive -Path allure-report\\* -DestinationPath allure-report.zip -Force
+                    """
+                }
+            }
+        }
     }
 
     post {
