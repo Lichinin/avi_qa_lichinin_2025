@@ -122,8 +122,7 @@ pipeline {
                     body: htmlBody,
                     mimeType: 'text/html',
                     attachLog: true,
-                    attachmentsPattern: 'allure-report.zip'
-                    // attachmentsPattern: '**/allure-report.zip'  // ✅ Только если файл существует
+                    attachmentsPattern: 'allure-report/report.pdf'
                 )
             }
         }
