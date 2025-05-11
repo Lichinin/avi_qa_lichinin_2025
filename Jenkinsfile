@@ -52,26 +52,6 @@ pipeline {
                 }
             }
         }
-        stage('Generate Password Protected Archive') {
-            steps {
-                script {
-                    def zipPath = "${env.WORKSPACE}\\allure-report.zip"
-                    def encryptedZipPath = "${env.WORKSPACE}\\allure-report-secure.zip"
-                    def archivePassword = "12345"
-
-                    // Удаляем старые архивы, если есть
-                    bat 'if exist allure-report.zip del /q allure-report.zip'
-                    bat 'if exist allure-report-secure.zip del /q allure-report-secure.zip'
-
-                    // Используем 7z для создания зашифрованного архива
-                    bat """
-                        "C:\\Program Files\\7-Zip\\7z.exe" a -tzip -p${archivePassword} -mem=AES256 -mhe=on ${encryptedZipPath} allure-report\\*
-                    """
-
-                    echo "🔒 Зашифрованный архив создан: ${encryptedZipPath}"
-                }
-            }
-        }
     }
 
     post {
@@ -142,7 +122,7 @@ pipeline {
                     body: htmlBody,
                     mimeType: 'text/html',
                     attachLog: true,
-                    attachmentsPattern: 'allure-report-secure.zip'
+                    attachmentsPattern: 'allure-report.zip'
                 )
             }
         }
