@@ -62,7 +62,7 @@ pipeline {
 
                     // 7z a -tzip -p<password> -mhe=on -> шифрует и имена, и содержимое
                     bat """
-                        "C:\\Program Files\\7-Zip\\7z.exe" a -tzip -p${archivePassword} -mhe=on allure-report.zip allure-report\\*
+                        "C:\\Program Files\\7-Zip\\7z.exe" a -tzip -p${archivePassword} -mhe=on allure-reports.zip allure-report\\*
                     """
 
                     echo "🔒 Зашифрованный архив с скрытыми именами создан"
