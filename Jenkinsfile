@@ -30,35 +30,32 @@ pipeline {
             }
         }
 
-        stage('Start Selenoid') {
+        stage('Start Selenoid and Run Tests') {
             steps {
-                bat """
-                    docker-compose -p %DOCKER_COMPOSE_PROJECT_NAME% up -d selenoid
-                    ping -n 10 127.0.0.1 > nul
-                """
-            }
-        }
+                script {
+                    try {
+                        // Запуск Selenoid
+                        bat """
+                            docker-compose -p %DOCKER_COMPOSE_PROJECT_NAME% up -d selenoid
+                            ping -n 10 127.0.0.1 > nul
+                        """
 
-        stage('Run Tests') {
-            steps {
-                bat """
-                    docker-compose -p %DOCKER_COMPOSE_PROJECT_NAME% run --rm tests
-                """
-            }
-        }
+                        // Запуск тестов
+                        bat """
+                            docker-compose -p %DOCKER_COMPOSE_PROJECT_NAME% run --rm tests
+                        """
 
-        // Ждём немного, чтобы результаты успели записаться
-        stage('Wait for Allure Results') {
-            steps {
-                bat 'ping -n 5 127.0.0.1 > nul'
-            }
-        }
+                        // Ждём, чтобы allure-results точно были готовы
+                        bat 'ping -n 5 127.0.0.1 > nul'
 
-        stage('Stop Containers') {
-            steps {
-                bat """
-                    docker-compose -p %DOCKER_COMPOSE_PROJECT_NAME% down || exit 0
-                """
+                    } finally {
+                        // Этот блок выполнится всегда — даже если тесты упали
+                        echo "Останавливаем контейнеры..."
+                        bat """
+                            docker-compose -p %DOCKER_COMPOSE_PROJECT_NAME% down || exit 0
+                        """
+                    }
+                }
             }
         }
     }
@@ -75,7 +72,7 @@ pipeline {
                 def failed = 0
                 def skipped = 0
 
-                // Ищем только JSON-файлы с результатами тестов
+                // Ищем все JSON-файлы с результатами тестов
                 def files = findFiles(glob: 'allure-results/*-result.json')
 
                 if (files == null || files.size() == 0) {
