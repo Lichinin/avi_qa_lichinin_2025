@@ -23,18 +23,15 @@ pipeline {
             steps {
                 script {
                     try {
-                        // Запуск Selenoid
                         bat """
                             docker-compose -p %DOCKER_COMPOSE_PROJECT_NAME% up -d selenoid
                             ping -n 10 127.0.0.1 > nul
                         """
 
-                        // Запуск тестов
                         bat """
                             docker-compose -p %DOCKER_COMPOSE_PROJECT_NAME% run --rm tests
                         """
 
-                        // Ждём окончания записи результатов
                         bat 'ping -n 5 127.0.0.1 > nul'
 
                     } finally {
@@ -61,7 +58,6 @@ pipeline {
                 def failed = 0
                 def skipped = 0
 
-                // Подсчёт тестов
                 def files = findFiles(glob: 'allure-results/*-result.json')
 
                 if (files == null || files.size() == 0) {
@@ -117,6 +113,7 @@ pipeline {
                     subject: subject,
                     body: htmlBody,
                     mimeType: 'text/html',
+                    attachLog: true,
                     attachmentsPattern: attachmentPath
                 )
             }
