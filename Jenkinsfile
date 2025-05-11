@@ -31,9 +31,6 @@ pipeline {
                         bat """
                             docker-compose -p %DOCKER_COMPOSE_PROJECT_NAME% run --rm tests
                         """
-
-                        // bat 'ping -n 5 127.0.0.1 > nul'
-
                     } finally {
                         echo "Останавливаю контейнеры..."
                         bat """
