@@ -126,7 +126,7 @@ pipeline {
                     subject: subject,
                     body: htmlBody,
                     mimeType: 'text/html',
-                    attachmentsPattern: 'allure-report/**'
+                    attachmentsPattern: 'allure-report/'
                 )
             }
         }
