@@ -63,7 +63,7 @@ pipeline {
     post {
         always {
             allure includeProperties: false, jdk: '', results: [[path: 'allure-results']]
-            archiveArtifacts artifacts: 'allure-report/**', allowEmptyArchive: true
+            archiveArtifacts artifacts: 'allure-report/', allowEmptyArchive: true
             echo 'Pipeline finished.'
         }
 
