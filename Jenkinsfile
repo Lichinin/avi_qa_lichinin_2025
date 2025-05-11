@@ -80,19 +80,12 @@ pipeline {
                 } else {
                     files.each { file ->
                         try {
-                            def json = readJSON file: file.path
+                            def json = readJSON(file: file.path)
                             switch(json.status) {
-                                case "passed":
-                                    passed++
-                                    break
-                                case "failed":
-                                    failed++
-                                    break
-                                case "skipped":
-                                    skipped++
-                                    break
-                                default:
-                                    echo "Неизвестный статус: ${json.status}"
+                                case "passed": passed++; break
+                                case "failed": failed++; break
+                                case "skipped": skipped++; break
+                                default: echo "Неизвестный статус: ${json.status}"
                             }
                         } catch (Exception e) {
                             echo "Ошибка при чтении файла ${file.name}: ${e}"
@@ -120,18 +113,22 @@ pipeline {
                     </html>
                 """.stripIndent()
 
-                // ✅ Новый этап: создаём ZIP-архив с отчётом
-                bat """
-                    cd allure-report && powershell Compress-Archive -Path * -DestinationPath ..\\allure-report.zip -Force
-                """
+                // ✅ Защита: проверяем, существует ли архив
+                def hasAttachment = fileExists('allure-report.zip')
+                def attachmentPath = hasAttachment ? 'allure-report.zip' : null
 
-                // Теперь отправляем письмо с прикреплённым архивом
+                if (hasAttachment) {
+                    echo "📎 Архив найден: allure-report.zip"
+                } else {
+                    echo "🚫 Архив не найден: allure-report.zip"
+                }
+
                 emailext (
                     to: 'lichinin.v@yandex.ru',
                     subject: subject,
                     body: htmlBody,
                     mimeType: 'text/html',
-                    // attachmentsPattern: 'allure-report.zip'  // ✅ Прикрепляем ZIP
+                    attachmentsPattern: attachmentPath  // ✅ Только если файл существует
                 )
             }
         }
