@@ -120,11 +120,18 @@ pipeline {
                     </html>
                 """.stripIndent()
 
+                // ✅ Новый этап: создаём ZIP-архив с отчётом
+                bat """
+                    cd allure-report && powershell Compress-Archive -Path * -DestinationPath ..\\allure-report.zip -Force
+                """
+
+                // Теперь отправляем письмо с прикреплённым архивом
                 emailext (
                     to: 'lichinin.v@yandex.ru',
                     subject: subject,
                     body: htmlBody,
                     mimeType: 'text/html',
+                    attachmentsPattern: 'allure-report.zip'  // ✅ Прикрепляем ZIP
                 )
             }
         }
