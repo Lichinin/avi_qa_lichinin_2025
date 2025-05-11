@@ -66,7 +66,7 @@ pipeline {
                 def skipped = 0
 
                 // Ищем файлы test-result-*.json
-                def files = findFiles(glob: 'allure-results/*.json')
+                def files = findFiles(glob: 'allure-results/*-result.json')
 
                 if (files == null || files.size() == 0) {
                     echo "❌ Файлы результатов не найдены в allure-results/"
