@@ -12,7 +12,6 @@ pipeline {
             }
         }
 
-        // ✅ Новый этап: Очистка старых результатов
         stage('Clean Allure Results') {
             steps {
                 script {
@@ -34,22 +33,17 @@ pipeline {
             steps {
                 script {
                     try {
-                        // Запуск Selenoid
                         bat """
                             docker-compose -p %DOCKER_COMPOSE_PROJECT_NAME% up -d selenoid
-                            ping -n 10 127.0.0.1 > nul
                         """
 
-                        // Запуск тестов
                         bat """
                             docker-compose -p %DOCKER_COMPOSE_PROJECT_NAME% run --rm tests
                         """
 
-                        // Ждём, чтобы allure-results точно были готовы
                         bat 'ping -n 5 127.0.0.1 > nul'
 
                     } finally {
-                        // Этот блок выполнится всегда — даже если тесты упали
                         echo "Останавливаем контейнеры..."
                         bat """
                             docker-compose -p %DOCKER_COMPOSE_PROJECT_NAME% down || exit 0
