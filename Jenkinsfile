@@ -131,7 +131,7 @@ pipeline {
                     subject: subject,
                     body: htmlBody,
                     mimeType: 'text/html',
-                    attachmentsPattern: 'allure-report.zip'  // ✅ Прикрепляем ZIP
+                    // attachmentsPattern: 'allure-report.zip'  // ✅ Прикрепляем ZIP
                 )
             }
         }
