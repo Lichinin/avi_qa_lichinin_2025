@@ -55,7 +55,7 @@ pipeline {
         stage('Generate Encrypted Archive with Hidden Names') {
             steps {
                 script {
-                    def archivePassword = 'your_password_here'
+                    def archivePassword = '12345'
 
                     // Удаляем старый архив, если есть
                     bat 'if exist allure-report.zip del /q allure-report.zip'
@@ -139,7 +139,7 @@ pipeline {
                     body: htmlBody,
                     mimeType: 'text/html',
                     attachLog: true,
-                    attachmentsPattern: 'allure-report-secure.zip'
+                    attachmentsPattern: 'allure-report.zip'
                 )
             }
         }
