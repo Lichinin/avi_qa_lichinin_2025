@@ -26,7 +26,6 @@ pipeline {
                         echo "Запускаю Selenoid..."
                         bat """
                             docker-compose -p %DOCKER_COMPOSE_PROJECT_NAME% up -d selenoid
-                            // ping -n 10 127.0.0.1 > nul
                         """
                         echo "Запускаю тесты..."
                         bat """
