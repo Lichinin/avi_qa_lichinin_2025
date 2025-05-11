@@ -12,6 +12,16 @@ pipeline {
             }
         }
 
+        // ✅ Новый этап: Очистка старых результатов
+        stage('Clean Allure Results') {
+            steps {
+                script {
+                    bat 'if exist allure-results rd /s /q allure-results'
+                    bat 'mkdir allure-results'
+                }
+            }
+        }
+
         stage('Setup Project Name') {
             steps {
                 script {
@@ -37,10 +47,10 @@ pipeline {
             }
         }
 
-        // ✅ Добавленный этап: Ждём, чтобы allure-results точно были готовы
+        // Ждём немного, чтобы результаты успели записаться
         stage('Wait for Allure Results') {
             steps {
-                bat 'ping -n 10 127.0.0.1 > nul'
+                bat 'ping -n 5 127.0.0.1 > nul'
             }
         }
 
@@ -65,7 +75,7 @@ pipeline {
                 def failed = 0
                 def skipped = 0
 
-                // Ищем файлы test-result-*.json
+                // Ищем только JSON-файлы с результатами тестов
                 def files = findFiles(glob: 'allure-results/*-result.json')
 
                 if (files == null || files.size() == 0) {
