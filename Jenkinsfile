@@ -16,7 +16,7 @@ pipeline {
         stage('Clean Allure Results') {
             steps {
                 script {
-                    bat 'if exist allure-results rd /s /q allure-results'
+                    bat 'powershell -Command "if (Test-Path allure-results) { Remove-Item -Recurse -Force allure-results }"'
                     bat 'mkdir allure-results'
                 }
             }
