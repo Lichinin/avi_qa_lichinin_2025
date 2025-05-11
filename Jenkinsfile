@@ -12,7 +12,7 @@ pipeline {
             }
         }
 
-        stage('Setup Docker Compose Project Name') {
+        stage('Setup Project Name') {
             steps {
                 script {
                     echo "DOCKER_COMPOSE_PROJECT_NAME = ${env.DOCKER_COMPOSE_PROJECT_NAME}"
@@ -20,25 +20,35 @@ pipeline {
             }
         }
 
-        stage('Start Selenoid and Run Tests') {
+        stage('Start Selenoid') {
             steps {
-                script {
-                    try {
-                        bat """
-                            docker-compose -p %DOCKER_COMPOSE_PROJECT_NAME% up -d selenoid
-                            ping -n 10 127.0.0.1 > nul
-                        """
+                bat """
+                    docker-compose -p %DOCKER_COMPOSE_PROJECT_NAME% up -d selenoid
+                    ping -n 10 127.0.0.1 > nul
+                """
+            }
+        }
 
-                        bat """
-                            docker-compose -p %DOCKER_COMPOSE_PROJECT_NAME% run --rm tests
-                        """
-                    } finally {
-                        echo "Останавливаем контейнеры..."
-                        bat """
-                            docker-compose -p %DOCKER_COMPOSE_PROJECT_NAME% down || exit 0
-                        """
-                    }
-                }
+        stage('Run Tests') {
+            steps {
+                bat """
+                    docker-compose -p %DOCKER_COMPOSE_PROJECT_NAME% run --rm tests
+                """
+            }
+        }
+
+        // ✅ Добавленный этап: Ждём, чтобы allure-results точно были готовы
+        stage('Wait for Allure Results') {
+            steps {
+                bat 'ping -n 10 127.0.0.1 > nul'
+            }
+        }
+
+        stage('Stop Containers') {
+            steps {
+                bat """
+                    docker-compose -p %DOCKER_COMPOSE_PROJECT_NAME% down || exit 0
+                """
             }
         }
     }
@@ -55,10 +65,7 @@ pipeline {
                 def failed = 0
                 def skipped = 0
 
-                // ✅ Заменим sleep на Windows-совместимый
-                bat 'ping -n 5 127.0.0.1 > nul'
-
-                // ✅ Убедись, что Jenkins может читать allure-results
+                // Ищем файлы test-result-*.json
                 def files = findFiles(glob: 'allure-results/test-result-*.json')
 
                 if (files == null || files.size() == 0) {
