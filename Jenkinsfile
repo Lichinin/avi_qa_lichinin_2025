@@ -82,9 +82,7 @@ pipeline {
         always {
             allure includeProperties: false, jdk: '', results: [[path: 'allure-results']]
             echo 'Pipeline finished.'
-        }
 
-        failure {
             script {
                 def passed = 0
                 def failed = 0
