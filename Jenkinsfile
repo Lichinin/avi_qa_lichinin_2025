@@ -1,10 +1,6 @@
 pipeline {
     agent any
 
-    triggers {
-        pollSCM('H * * * *')
-    }
-
     environment {
         DOCKER_COMPOSE_PROJECT_NAME = "ci_build_${currentBuild.number}"
     }
