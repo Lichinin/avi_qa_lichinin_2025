@@ -52,20 +52,23 @@ pipeline {
                 }
             }
         }
-        stage('Generate Encrypted Archive with Hidden Names') {
+        stage('Generate Password Protected Archive') {
             steps {
                 script {
-                    def archivePassword = '12345'
+                    def zipPath = "${env.WORKSPACE}\\allure-report.zip"
+                    def encryptedZipPath = "${env.WORKSPACE}\\allure-report-secure.zip"
+                    def archivePassword = "12345"
 
-                    // Удаляем старый архив, если есть
+                    // Удаляем старые архивы, если есть
                     bat 'if exist allure-report.zip del /q allure-report.zip'
+                    bat 'if exist allure-report-secure.zip del /q allure-report-secure.zip'
 
-                    // 7z a -tzip -p<password> -mhe=on -> шифрует и имена, и содержимое
+                    // Используем 7z для создания зашифрованного архива
                     bat """
-                        "C:\\Program Files\\7-Zip\\7z.exe" a -tzip -p${archivePassword} -mhe=on allure-reports.zip allure-report\\*
+                        "C:\\Program Files\\7-Zip\\7z.exe" a -tzip -p${archivePassword} -mem=AES256 -mhe=on ${encryptedZipPath} allure-report\\*
                     """
 
-                    echo "🔒 Зашифрованный архив с скрытыми именами создан"
+                    echo "🔒 Зашифрованный архив создан: ${encryptedZipPath}"
                 }
             }
         }
@@ -139,7 +142,7 @@ pipeline {
                     body: htmlBody,
                     mimeType: 'text/html',
                     attachLog: true,
-                    attachmentsPattern: 'allure-report.zip'
+                    attachmentsPattern: 'allure-report-secure.zip'
                 )
             }
         }
