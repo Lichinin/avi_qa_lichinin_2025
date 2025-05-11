@@ -1,6 +1,10 @@
 pipeline {
     agent any
 
+    triggers {
+        pollSCM('H/5 * * * *')
+    }
+
     environment {
         DOCKER_COMPOSE_PROJECT_NAME = "ci_build_${currentBuild.number}"
     }
@@ -128,7 +132,7 @@ pipeline {
                     subject: subject,
                     body: htmlBody,
                     mimeType: 'text/html',
-                    attachmentsPattern: '**/allure-report.zip'  // ✅ Только если файл существует
+                    // attachmentsPattern: '**/allure-report.zip'  // ✅ Только если файл существует
                 )
             }
         }
