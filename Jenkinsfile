@@ -14,18 +14,8 @@ pipeline {
 
         stage('Clean Allure Results') {
             steps {
-                script {
-                    bat 'powershell -Command "if (Test-Path allure-results) { Remove-Item -Recurse -Force allure-results }"'
-                    bat 'mkdir allure-results'
-                }
-            }
-        }
-
-        stage('Setup Project Name') {
-            steps {
-                script {
-                    echo "DOCKER_COMPOSE_PROJECT_NAME = ${env.DOCKER_COMPOSE_PROJECT_NAME}"
-                }
+                bat 'powershell -Command "if (Test-Path allure-results) { Remove-Item -Recurse -Force allure-results }"'
+                bat 'mkdir allure-results'
             }
         }
 
@@ -33,14 +23,18 @@ pipeline {
             steps {
                 script {
                     try {
+                        // Запуск Selenoid
                         bat """
                             docker-compose -p %DOCKER_COMPOSE_PROJECT_NAME% up -d selenoid
+                            ping -n 10 127.0.0.1 > nul
                         """
 
+                        // Запуск тестов
                         bat """
                             docker-compose -p %DOCKER_COMPOSE_PROJECT_NAME% run --rm tests
                         """
 
+                        // Ждём окончания записи результатов
                         bat 'ping -n 5 127.0.0.1 > nul'
 
                     } finally {
@@ -52,42 +46,30 @@ pipeline {
                 }
             }
         }
+
         stage('Generate Allure Report Archive') {
             steps {
-                script {
-                    // Удаляем старый архив, если он есть
-                    def zipExists = fileExists('allure-report.zip')
-                    if (zipExists) {
-                        bat 'del /q allure-report.zip'
-                    }
-
-                    bat """
-                        powershell Compress-Archive -Path allure-report\\* -DestinationPath allure-report.zip -Force
-                    """
-                }
+                bat 'powershell Compress-Archive -Path allure-report\\* -DestinationPath allure-report.zip -Force'
             }
         }
     }
 
     post {
         always {
-            allure includeProperties: false, jdk: '', results: [[path: 'allure-results']]
-            echo 'Pipeline finished.'
-
             script {
                 def passed = 0
                 def failed = 0
                 def skipped = 0
 
-                // Ищем все JSON-файлы с результатами тестов
+                // Подсчёт тестов
                 def files = findFiles(glob: 'allure-results/*-result.json')
 
                 if (files == null || files.size() == 0) {
-                    echo "❌ Файлы результатов не найдены в allure-results/"
+                    echo "❌ Файлы результатов не найдены"
                 } else {
                     files.each { file ->
                         try {
-                            def json = readJSON(file: file.path)
+                            def json = readJSON file: file.path
                             switch(json.status) {
                                 case "passed": passed++; break
                                 case "failed": failed++; break
@@ -102,33 +84,32 @@ pipeline {
 
                 def buildName = currentBuild.fullDisplayName
                 def buildUrl = env.BUILD_URL
-                def buldStatus = currentBuild.currentResult
 
-                def subject = "Pipeline status ${buildName}: ${buldStatus}"
+                def subject = "📊 Результаты сборки: ${buildName}"
                 def htmlBody = """\
                     <html>
                     <body>
-                    <h3>Результаты сборки ${buildName}: ${buldStatus}</h3>
-                    <p><strong>Ссылка:</strong> <a href='${buildUrl}'>${buildUrl}</a></p>
-                    <h4>Результаты тестов:</h4>
-                    <ul>
+                      <h3>Сборка: ${buildName}</h3>
+                      <p><strong>Статус:</strong> ${currentBuild.currentResult}</p>
+                      <p><strong>Ссылка:</strong> <a href='${buildUrl}'>${buildUrl}</a></p>
+
+                      <h4>Результаты тестов</h4>
+                      <ul>
                         <li>✅ Пройдено: ${passed ?: 0}</li>
                         <li>❌ Упало: ${failed ?: 0}</li>
                         <li>⚠️ Пропущено: ${skipped ?: 0}</li>
-                    </ul>
-                    <p>Сгенерировано автоматически через Jenkins + Allure</p>
+                      </ul>
+
+                      <p>Сгенерировано автоматически через Jenkins + Allure</p>
                     </body>
                     </html>
                 """.stripIndent()
 
-                // ✅ Защита: проверяем, существует ли архив
                 def hasAttachment = fileExists('allure-report.zip')
                 def attachmentPath = hasAttachment ? 'allure-report.zip' : null
 
-                if (hasAttachment) {
-                    echo "📎 Архив найден: allure-report.zip"
-                } else {
-                    echo "🚫 Архив не найден: allure-report.zip"
+                if (!hasAttachment) {
+                    echo "🚫 Архив не найден, отправляем без вложения"
                 }
 
                 emailext (
@@ -136,8 +117,7 @@ pipeline {
                     subject: subject,
                     body: htmlBody,
                     mimeType: 'text/html',
-                    attachLog: true,
-                    attachmentsPattern: 'allure-report.zip'
+                    attachmentsPattern: attachmentPath
                 )
             }
         }
