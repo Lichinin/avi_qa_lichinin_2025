@@ -52,27 +52,23 @@ pipeline {
                 }
             }
         }
-
-        // ✅ Новый этап: Создание и переименование ZIP-архива
-        stage('Generate Renamed Report Archive') {
+        stage('Generate Password Protected Archive') {
             steps {
                 script {
-                    try {
-                        // Удаляем старые архивы, если есть
-                        bat 'if exist allure-report.zip del /q allure-report.zip'
-                        bat 'if exist allure-report.zip_renamed del /q allure-report.zip_renamed'
+                    def zipPath = "${env.WORKSPACE}\\allure-report.zip"
+                    def encryptedZipPath = "${env.WORKSPACE}\\allure-report-secure.zip"
+                    def archivePassword = "12345"
 
-                        // Создаём новый архив
-                        bat 'powershell Compress-Archive -Path allure-report\\* -DestinationPath allure-report.zip -Force'
+                    // Удаляем старые архивы, если есть
+                    bat 'if exist allure-report.zip del /q allure-report.zip'
+                    bat 'if exist allure-report-secure.zip del /q allure-report-secure.zip'
 
-                        // Переименовываем его в allure-report.zip_renamed
-                        bat 'move allure-report.zip allure-report.zip_renamed'
+                    // Используем 7z для создания зашифрованного архива
+                    bat """
+                        C:\Program Files\7-Zip\7z.exe a -tzip -p${archivePassword} -mem=AES256 ${encryptedZipPath} allure-report\\*
+                    """
 
-                        echo "📦 Архив успешно создан и переименован: allure-report.zip_renamed"
-
-                    } catch (Exception e) {
-                        echo "⚠️ Не удалось создать архив: ${e}"
-                    }
+                    echo "🔒 Зашифрованный архив создан: ${encryptedZipPath}"
                 }
             }
         }
@@ -88,10 +84,11 @@ pipeline {
                 def failed = 0
                 def skipped = 0
 
+                // Ищем все JSON-файлы с результатами тестов
                 def files = findFiles(glob: 'allure-results/*-result.json')
 
                 if (files == null || files.size() == 0) {
-                    echo "❌ Файлы результатов не найдены"
+                    echo "❌ Файлы результатов не найдены в allure-results/"
                 } else {
                     files.each { file ->
                         try {
@@ -110,26 +107,34 @@ pipeline {
 
                 def buildName = currentBuild.fullDisplayName
                 def buildUrl = env.BUILD_URL
-                def buildStatus = currentBuild.currentResult
+                def buldStatus = currentBuild.currentResult
 
-                def subject = "❌ Failed Pipeline: ${buildName} — ${buildStatus}"
+                def subject = "Pipeline status ${buildName}: ${buldStatus}"
                 def htmlBody = """\
                     <html>
                     <body>
-                      <h3>Сборка упала: ${buildName}</h3>
-                      <p><strong>Ссылка:</strong> <a href='${buildUrl}'>${buildUrl}</a></p>
-
-                      <h4>Результаты тестов:</h4>
-                      <ul>
+                    <h3>Результаты сборки ${buildName}: ${buldStatus}</h3>
+                    <p><strong>Ссылка:</strong> <a href='${buildUrl}'>${buildUrl}</a></p>
+                    <h4>Результаты тестов:</h4>
+                    <ul>
                         <li>✅ Пройдено: ${passed ?: 0}</li>
                         <li>❌ Упало: ${failed ?: 0}</li>
                         <li>⚠️ Пропущено: ${skipped ?: 0}</li>
-                      </ul>
-
-                      <p>Лог сборки и отчет приложены</p>
+                    </ul>
+                    <p>Сгенерировано автоматически через Jenkins + Allure</p>
                     </body>
                     </html>
                 """.stripIndent()
+
+                // ✅ Защита: проверяем, существует ли архив
+                def hasAttachment = fileExists('allure-report.zip')
+                def attachmentPath = hasAttachment ? 'allure-report.zip' : null
+
+                if (hasAttachment) {
+                    echo "📎 Архив найден: allure-report.zip"
+                } else {
+                    echo "🚫 Архив не найден: allure-report.zip"
+                }
 
                 emailext (
                     to: 'lichinin.v@yandex.ru',
@@ -137,7 +142,7 @@ pipeline {
                     body: htmlBody,
                     mimeType: 'text/html',
                     attachLog: true,
-                    attachmentsPattern: 'allure-report.zip_renamed'  // ✅ Используем новое имя
+                    attachmentsPattern: 'allure-report-secure.zip'
                 )
             }
         }
