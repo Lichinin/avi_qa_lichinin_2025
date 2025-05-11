@@ -60,7 +60,7 @@ pipeline {
             echo 'Pipeline finished.'
         }
 
-        failure {
+        always {
             script {
                 def passed = 0
                 def failed = 0
@@ -90,11 +90,11 @@ pipeline {
                 def buildName = currentBuild.fullDisplayName
                 def buildUrl = env.BUILD_URL
 
-                def subject = "❌ Failed Pipeline: ${buildName}"
+                def subject = "Pipeline status: ${buildName}"
                 def htmlBody = """\
                     <html>
                     <body>
-                    <h3>Сборка: ${buildName} упала</h3>
+                    <h3>Результаты сборки: ${buildName}</h3>
                     <p><strong>Ссылка:</strong> <a href='${buildUrl}'>${buildUrl}</a></p>
                     <h4>Результаты тестов:</h4>
                     <ul>
