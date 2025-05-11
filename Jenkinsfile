@@ -79,6 +79,7 @@ pipeline {
 
                 def buildName = currentBuild.fullDisplayName
                 def buildUrl = env.BUILD_URL
+                def buldDuration = currentBuild.duration
 
                 def subject = "📊 Результаты сборки: ${buildName}"
                 def htmlBody = """\
@@ -87,6 +88,8 @@ pipeline {
                       <h3>Сборка: ${buildName}</h3>
                       <p><strong>Статус:</strong> ${currentBuild.currentResult}</p>
                       <p><strong>Ссылка:</strong> <a href='${buildUrl}'>${buildUrl}</a></p>
+                      <p><strong>Время выполнения:</strong> ${buldDuration}</p>
+                      currentBuild.duration
 
                       <h4>Результаты тестов</h4>
                       <ul>
