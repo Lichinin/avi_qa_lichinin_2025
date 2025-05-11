@@ -23,22 +23,20 @@ pipeline {
             steps {
                 script {
                     try {
-                        // Запуск Selenoid
+                        echo "Запускаю Selenoid..."
                         bat """
                             docker-compose -p %DOCKER_COMPOSE_PROJECT_NAME% up -d selenoid
                             ping -n 10 127.0.0.1 > nul
                         """
-
-                        // Запуск тестов
+                        echo "Запускаю тесты..."
                         bat """
                             docker-compose -p %DOCKER_COMPOSE_PROJECT_NAME% run --rm tests
                         """
 
-                        // Ждём окончания записи результатов
                         bat 'ping -n 5 127.0.0.1 > nul'
 
                     } finally {
-                        echo "Останавливаем контейнеры..."
+                        echo "Останавливаю контейнеры..."
                         bat """
                             docker-compose -p %DOCKER_COMPOSE_PROJECT_NAME% down || exit 0
                         """
@@ -118,6 +116,7 @@ pipeline {
                     subject: subject,
                     body: htmlBody,
                     mimeType: 'text/html',
+                    attachLog: true,
                     attachmentsPattern: attachmentPath
                 )
             }
