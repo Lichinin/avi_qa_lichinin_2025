@@ -79,9 +79,9 @@ pipeline {
 
                 def buildName = currentBuild.fullDisplayName
                 def buildUrl = env.BUILD_URL
-                def buldDuration = currentBuild.duration
+                def buldDuration = currentBuild.duration / 1000
 
-                def subject = "📊 Результаты сборки: ${buildName/1000} секунд"
+                def subject = "📊 Результаты сборки: ${buildName} секунд"
                 def htmlBody = """\
                     <html>
                     <body>
