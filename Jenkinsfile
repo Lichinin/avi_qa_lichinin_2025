@@ -110,7 +110,7 @@ pipeline {
                 }
 
                 emailext (
-                    to: 'lichinin.v@yandex.ru, lichin@live.ru', 
+                    to: 'lichinin.v@yandex.ru, daniil.idrisov@simbirsoft.com', 
                     subject: subject,
                     body: htmlBody,
                     mimeType: 'text/html',
